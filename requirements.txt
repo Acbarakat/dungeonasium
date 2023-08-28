@@ -1,0 +1,19 @@
+gymnasium
+numpy
+tqdm
+
+# render to surface/opengl
+pygame
+
+# render to jupyter notebook
+pillow
+ipython
+ipywidgets
+
+#tensorflow<2.11
+#kera-rl2
+#dm-reverb<0.10
+#tf-agents<0.15
+#pettingzoo
+#stable-baselines3[extra]
+#ray[rllib]
