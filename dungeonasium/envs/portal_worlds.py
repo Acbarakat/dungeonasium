@@ -7,12 +7,13 @@ from IPython.display import display
 from gymnasium import spaces
 
 from ..envs.base import World2dEnv, ASSET_DIR
+from ..visuals.gif import GifSprite
 
 
 class PortalWorldEnv(World2dEnv):
     metadata = {
         "render_modes": ["human", "jupyter"],
-        "render_fps": 4
+        "render_fps": 15
     }
 
     def __init__(self, render_mode=None):
@@ -61,11 +62,16 @@ class PortalWorldEnv(World2dEnv):
         self.window = None
         self.clock = None
         self.show_grid = False
+        self.sprite_group = None
+        self.portal = None
 
         if self.window is None and self.render_mode in ("human", "jupyter"):
             # pygame.init()
             pygame.display.init()
             self.window = pygame.display.set_mode(self.window_size)
+            self.clock = pygame.time.Clock()
+
+            self.sprite_group = pygame.sprite.Group()
 
     def _get_obs(self):
         return {
@@ -101,7 +107,6 @@ class PortalWorldEnv(World2dEnv):
 
         if self.render_mode in ("human", "jupyter"):
             info["img"] = self._render_frame()
-            # self._render_frame()
 
         return observation, info
 
@@ -113,7 +118,8 @@ class PortalWorldEnv(World2dEnv):
             self._agent_location + direction, np.array([0, 0]), self.size - np.array([1, 1])
         )
         # An episode is done iff the agent has reached the target
-        terminated = np.array_equal(self._agent_location, self._target_location)
+        terminated = np.array_equal(self._agent_location,
+                                    self._target_location)
         reward = 1 if terminated else 0  # Binary sparse rewards
         observation = self._get_obs()
         info = self._get_info()
@@ -130,14 +136,6 @@ class PortalWorldEnv(World2dEnv):
             return self._render_frame()
 
     def _render_frame(self):
-        if self.window is None and self.render_mode in ("human", "jupyter"):
-            # pygame.init()
-            pygame.display.init()
-            self.window = pygame.display.set_mode(self.window_size)
-
-        if self.clock is None and self.render_mode in ("human", "jupyter"):
-            self.clock = pygame.time.Clock()
-
         # canvas = pygame.Surface((self.window_size, self.window_size))
         # canvas.fill((255, 255, 255))
         canvas = self.bg_surface.copy()
@@ -146,14 +144,24 @@ class PortalWorldEnv(World2dEnv):
         pix_radius = np.hypot(*self.size)
 
         # First we draw the target
-        pygame.draw.rect(
-            canvas,
-            (255, 0, 0),
-            pygame.Rect(
-                pix_square_size * self._target_location,
-                pix_square_size,
-            ),
-        )
+        # pygame.draw.rect(
+        #     canvas,
+        #     (255, 0, 0),
+        #     pygame.Rect(
+        #         ,
+        #         pix_square_size,
+        #     ),
+        # )
+        if self.portal is None:
+            self.portal = GifSprite(pix_square_size * self._target_location * 0.97,
+                                    os.path.join(ASSET_DIR,
+                                                 "portal.gif"),
+                                    self.sprite_group)
+            # self.portal.speed_up()
+            self.portal.scale(max(pix_square_size / self.portal.image.get_size()) * 1.3)
+        self.sprite_group.update(canvas)
+        self.sprite_group.draw(canvas)
+        
         # Now we draw the agent
         pygame.draw.circle(
             canvas,
@@ -201,4 +209,6 @@ class PortalWorldEnv(World2dEnv):
 
     def close(self):
         if self.window is not None:
+            pygame.display.quit()
             pygame.quit()
+            self.window = None

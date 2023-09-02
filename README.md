@@ -72,6 +72,7 @@ This project demonstrates various investigations in how one can train thier mons
 Credit to visual assets not created by contributors of the project will go here.
 
 [giants-bane-min.jpg](https://danielsmaps.com/dungeon-battlemaps/) is by [Daniel's Maps](https://danielsmaps.com/about/)
+[portal.gif](https://tenor.com/view/portal-gif-27145989) is by [phantompipa](https://tenor.com/users/phantompipa)
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 

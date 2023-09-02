@@ -4,6 +4,7 @@ tqdm
 
 # render to surface/opengl
 pygame
+pygame-animatedgif
 
 # render to jupyter notebook
 pillow
