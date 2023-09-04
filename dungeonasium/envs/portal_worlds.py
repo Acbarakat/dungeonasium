@@ -33,7 +33,12 @@ class PortalWorldEnv(World2dEnv):
                     shape=(2,),
                     dtype=int
                 ),
-                "target": spaces.Box(np.array([0, 0]), np.array(self.size), shape=(2,), dtype=int),
+                "target": spaces.Box(
+                    np.array([0, 0]),
+                    np.array(self.size),
+                    shape=(2,),
+                    dtype=int
+                ),
             }
         )
 
