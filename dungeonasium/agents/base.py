@@ -14,4 +14,4 @@ class BaseAgent:
         Returns:
             str: render_mode
         """
-        return self.env.spec.kwargs["render_mode"]
+        return self.env.spec.kwargs.get("render_mode", None)
