@@ -16,13 +16,16 @@ class PortalWorldEnv(World2dEnv):
         "render_fps": 15
     }
 
-    def __init__(self, render_mode=None):
+    def __init__(self,
+                 render_mode: str | None = None,
+                 sparse_reward: bool = True) -> None:
         super().__init__(render_mode=render_mode,
                          size=(24, 18),
                          rotate=90.0,
                          scale=0.5,
                          filepath=os.path.join(ASSET_DIR,
                                                "giants-bane-min.jpg"))
+        self.sparse_reward = sparse_reward
 
         # Observations are dictionaries with the agent's and the target's location.
         # Each location is encoded as an element of {0, ..., `size`}^2, i.e. MultiDiscrete([size, size]).
@@ -132,7 +135,16 @@ class PortalWorldEnv(World2dEnv):
             # An episode is done iff the agent has reached the target
             terminated = np.array_equal(self._agent_location,
                                         self._target_location)
-            reward = 1 if terminated else 0  # Binary sparse rewards
+            if terminated:
+                reward = 1
+            elif self.sparse_reward:
+                reward = 0  # Binary sparse rewards
+            else:
+                # x to 0.005 (norm == 1)
+                reward = np.reciprocal(np.linalg.norm(
+                    self._agent_location - self._target_location, ord=1
+                )) / 100.0
+
         observation = self._get_obs()
         info = self._get_info()
 
@@ -148,22 +160,11 @@ class PortalWorldEnv(World2dEnv):
             return self._render_frame()
 
     def _render_frame(self):
-        # canvas = pygame.Surface((self.window_size, self.window_size))
-        # canvas.fill((255, 255, 255))
         canvas = self.bg_surface.copy()
         # The size of a single grid square in pixels
         pix_square_size = np.array(self.window_size) / np.array(self.size)
         pix_radius = np.hypot(*self.size)
 
-        # First we draw the target
-        # pygame.draw.rect(
-        #     canvas,
-        #     (255, 0, 0),
-        #     pygame.Rect(
-        #         ,
-        #         pix_square_size,
-        #     ),
-        # )
         if self.portal is None:
             self.portal = GifSprite(pix_square_size * self._target_location * 0.97,
                                     os.path.join(ASSET_DIR,
@@ -173,7 +174,7 @@ class PortalWorldEnv(World2dEnv):
             self.portal.scale(max(pix_square_size / self.portal.image.get_size()) * 1.3)
         self.sprite_group.update(canvas)
         self.sprite_group.draw(canvas)
-        
+
         # Now we draw the agent
         pygame.draw.circle(
             canvas,
